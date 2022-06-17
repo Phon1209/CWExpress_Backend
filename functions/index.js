@@ -1,4 +1,5 @@
 const functions = require("firebase-functions");
+require("dotenv").config();
 
 const CWExpressAPI = require("./app");
 
