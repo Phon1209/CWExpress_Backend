@@ -11,6 +11,6 @@ router.get("/", (req, res) => {
 });
 
 // routes
-// router.use()
+router.use("/mqtt", require("./mqtt"));
 
 module.exports = router;

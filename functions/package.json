@@ -14,10 +14,13 @@
   },
   "main": "index.js",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
+    "express-validator": "^6.14.1",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.3.8",
     "morgan": "^1.10.0",
     "mqtt": "^4.3.7",
