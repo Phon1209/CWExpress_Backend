@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const MqttHandler = require("../MQTT/connect");
 const { check, validationResult } = require("express-validator");
+const { validate } = require("../middleware/validator");
 
 const mqttClient = new MqttHandler();
 mqttClient.connect();
@@ -23,16 +24,7 @@ router.post(
       .isNumeric()
       .withMessage("amount has to be a number"),
   ],
-  (req, res, next) => {
-    const errors = validationResult(req);
-
-    // Some error occurs when validate data
-    if (!errors.isEmpty()) {
-      console.error("Some Error occured while validating data");
-      return res.status(422).json({ errors: errors.array() });
-    }
-    next();
-  },
+  validate,
   (req, res) => {
     const amount = req.body.amount;
 
