@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const MqttHandler = require("../MQTT/connect");
-// const { check, validationResult } = require("express-validator");
+const { check, validationResult } = require("express-validator");
 
 const mqttClient = new MqttHandler();
 mqttClient.connect();
@@ -13,35 +13,38 @@ router.use((req, res, next) => {
   next();
 });
 
-// Test endpoint
-router.get("/:amount", (req, res) => {
-  const amount = Number(req.params.amount);
-  try {
-    console.log(typeof amount);
-    if (isNaN(amount)) throw new Error("amount is not number!");
+router.post(
+  "/",
+  [
+    check("amount")
+      .not()
+      .isEmpty()
+      .withMessage("number cannot be empty")
+      .isNumeric()
+      .withMessage("amount has to be a number"),
+  ],
+  (req, res, next) => {
+    const errors = validationResult(req);
 
-    mqttClient.sendMessage(testTopic, `on ${amount}`);
-    console.log("message sent");
-    res.json("Request sent");
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: "Bad Request" });
+    // Some error occurs when validate data
+    if (!errors.isEmpty()) {
+      console.error("Some Error occured while validating data");
+      return res.status(422).json({ errors: errors.array() });
+    }
+    next();
+  },
+  (req, res) => {
+    const amount = req.body.amount;
+
+    try {
+      mqttClient.sendMessage(testTopic, `on ${amount}`);
+      console.log("message sent");
+      res.json("Request sent");
+    } catch (err) {
+      console.error(err);
+      res.status(400).json({ error: "Bad Request" });
+    }
   }
-});
-
-router.post("/", (req, res) => {
-  const { amount } = Number(req.body);
-
-  try {
-    if (isNaN(amount)) throw new Error("amount is not number!");
-
-    mqttClient.sendMessage(testTopic, `on ${amount}`);
-    console.log("message sent");
-    res.json("Request sent");
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: "Bad Request" });
-  }
-});
+);
 
 module.exports = router;
