@@ -80,12 +80,12 @@ const createTempQR = (base64QR, orderID) => {
   var imagePath = path.join(__dirname, "..", "..", "temp", "QR");
   fs.writeFileSync(imagePath + orderID + ".png", buffer);
 
-  // delete an image after 5 mins
+  // delete an image after 30 secs
   setTimeout(() => {
     fs.unlink(imagePath + orderID + ".png", (err) => {
       if (err) throw err;
     });
-  }, 1000 * 60 * 5);
+  }, 1000 * 30);
 };
 
 // @route   POST  /pay/scb/qr
