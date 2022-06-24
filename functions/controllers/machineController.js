@@ -63,10 +63,37 @@ const addMachine = async (req, res) => {
 // @route   GET   /machines/:id
 // @desc    get machine's data
 // @access  Public
+const getMachine = async (req, res) => {
+  const _id = req.params.id;
+  console.log(_id);
+  try {
+    const data = await Machine.findOne({ _id });
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(404).json({ error: err.message });
+  }
+};
 
 // @route   PUT   /machines/:id
 // @desc    change machine's data
 // @access  Private
+const updateMachine = async (req, res) => {
+  const _id = req.params.id;
+
+  try {
+    // Update data with req.body
+    const updatedData = await Machine.findOneAndUpdate(
+      { _id },
+      { $set: { ...req.body } }
+    );
+
+    res.json(updatedData);
+  } catch (err) {
+    console.error(err);
+    res.status(404).json({ error: err.message });
+  }
+};
 
 // @route   DEL   /machines/:id
 // @desc    remove machine's data from the system
@@ -75,4 +102,6 @@ const addMachine = async (req, res) => {
 module.exports = {
   getMachines,
   addMachine,
+  getMachine,
+  updateMachine,
 };
