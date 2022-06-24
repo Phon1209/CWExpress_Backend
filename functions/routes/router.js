@@ -9,5 +9,6 @@ router.get("/", (req, res) => {
 router.use("/user", require("./user"));
 router.use("/mqtt", require("./mqtt"));
 router.use("/machines", require("./machine"));
+router.use("/pay", require("./pay"));
 
 module.exports = router;
