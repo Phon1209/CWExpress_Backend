@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  app:
+    container_name: "app"
+    build: "." # build from Dockerfile from '.'
+    tty: true # keep service running even if the CMD has no input
+    environment:
+      # environment variable
+      - PORT=${PORT}
+      - VERSION=${VERSION}
+      - MONGOURI=${MONGOURI}
+      - JWTPRIVATEKEY=${JWTPRIVATEKEY}
+      - MQTT_HOST=${MQTT_HOST}
+      - MQTT_CLIENT=${MQTT_CLIENT}
+      - MQTT_TOKEN=${MQTT_TOKEN}
+      - MQTT_SECRET=${MQTT_SECRET}

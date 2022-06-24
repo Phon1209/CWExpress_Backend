@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const MqttHandler = require("../MQTT/connect");
-const { check, validationResult } = require("express-validator");
-const validate = require("../middleware/validator");
+const { check } = require("express-validator");
+const validate = require("../middleware/validate");
 
 const mqttClient = new MqttHandler();
 mqttClient.connect();

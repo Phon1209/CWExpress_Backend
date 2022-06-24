@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+  app:
+    container_name: "app"
+    image: node:current-alpine3.15
+    volumes:
+      - ./functions:/app/functions
+      - ./server.js:/app/server.js
+      - ./.env:/app/.env
+      - ./node_modules:/app/node_modules
+    environment:
+      - PORT=${PORT}
+      - VERSION=${VERSION}
+      - MONGOURI=${MONGOURI}
+      - JWTPRIVATEKEY=${JWTPRIVATEKEY}
+      - MQTT_HOST=${MQTT_HOST}
+      - MQTT_CLIENT=${MQTT_CLIENT}
+      - MQTT_TOKEN=${MQTT_TOKEN}
+      - MQTT_SECRET=${MQTT_SECRET}
+    command: "node /app/server.js"
