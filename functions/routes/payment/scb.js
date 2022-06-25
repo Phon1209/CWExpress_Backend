@@ -8,6 +8,7 @@ const validate = require("../../middleware/validate");
 const Order = require("../../database/schema/Order");
 const { refIDGenerator } = require("../../utils/banking");
 const { createTempfile } = require("../../utils/file");
+const { topicPath, blink } = require("../../utils/mqtt");
 
 const getBankAccessToken = () => {
   const uid = uuid();
@@ -136,16 +137,64 @@ router.post("/qr", async (req, res) => {
   }
 });
 
+const checkOrder = (potentialOrder, amount) => {
+  if (potentialOrder) {
+    if (potentialOrder.amount !== amount) throw new Error("Amount mismatched");
+    if (potentialOrder.status !== "ACTIVE")
+      throw new Error("Order is not fulfilled");
+  } else throw new Error("Order not found");
+};
+
+const getPaidMachine = async (refs, amount) => {
+  try {
+    const potentialOrder = await Order.findOne({ ...refs });
+    checkOrder(potentialOrder, amount);
+
+    // Change status of the order
+    potentialOrder.status = "COMPLETED";
+    await potentialOrder.save();
+    return potentialOrder.machineID;
+  } catch (err) {
+    throw err;
+  }
+};
+
 // @route   POST  /pay/scb/confirm
 // @desc    receive webhook callback from scb
 // @access  Public
-router.post("/confirm", (req, res) => {
-  console.log(req.body);
-  res.json("callback received");
+router.post("/confirm", async (req, res) => {
+  const {
+    amount,
+    payeeAccountNumber,
+    transactionId,
+    transactionDateandTime,
+    billPaymentRef1,
+    billPaymentRef2,
+    billPaymentRef3,
+  } = req.body;
 
-  // TODO:
-  // check with the database for order
-  // call mqtt
+  try {
+    // check with the database for order
+    const machineID = await getPaidMachine(
+      { ref1: billPaymentRef1, ref2: billPaymentRef2 },
+      amount
+    );
+    if (billPaymentRef3 !== "CWEX") throw new Error("Corrupted Order");
+
+    // @TODO: Check with SCB api
+
+    // call mqtt
+    // const topic = await topicPath(machineID);
+    // blink(topic, amount);
+
+    res.status(200).json({
+      msg: "Transaction Complete",
+      cmd: `Blinking on ${amount}`,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
 });
 
 module.exports = router;
