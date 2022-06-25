@@ -7,10 +7,14 @@ const OrderSchema = mongoose.Schema({
     required: true,
     default: "ACTIVE",
   },
-  refNo: {
+  ref1: {
     type: String,
     required: true,
     unique: true,
+  },
+  ref2: {
+    type: String,
+    required: true,
   },
   amount: {
     type: Number,
