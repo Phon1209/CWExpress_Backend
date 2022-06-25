@@ -18,6 +18,7 @@ class MqttHandler {
       username: this.username,
       password: this.password,
       reconnectPeriod: 10000,
+      connectTimeout: 10000,
     });
 
     // Mqtt error calback
