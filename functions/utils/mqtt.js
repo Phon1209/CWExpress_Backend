@@ -5,16 +5,18 @@ let mqttClient;
 
 const initializeClient = () => {
   mqttClient = new MqttHandler();
-  mqttClient.connect();
+  mqttClient.connect(() => {
+    console.info(`mqtt client connected`);
+  });
 };
 
 const sendMessage = (topic, message) => {
-  mqttClient.sendMessage(topic, message);
-};
-
-const reconnect = () => {
-  if (!mqttClient.mqttClient || !mqttClient.mqttClient.connected)
-    mqttClient.connect();
+  if (mqttClient.mqttClient.connected) mqttClient.sendMessage(topic, message);
+  else {
+    mqttClient.connect(() => {
+      mqttClient.sendMessage(topic, message);
+    });
+  }
 };
 
 const blink = (topic, amount) => sendMessage(topic, `on ${amount}`);
@@ -30,7 +32,6 @@ const topicPath = async (machineID) => {
 };
 module.exports = {
   initializeClient,
-  reconnect,
   sendMessage,
   blink,
   topicPath,

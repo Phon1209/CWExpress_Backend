@@ -113,6 +113,7 @@ router.post("/qr", async (req, res) => {
 
   console.log(refs);
   let newOrder;
+  let base64QR;
 
   try {
     // populate order into database
@@ -123,12 +124,19 @@ router.post("/qr", async (req, res) => {
     const accessToken = await getBankAccessToken();
 
     // Request QR file from SCB
-    const base64QR = await getQRPayment(accessToken, amount, refs, orderID);
+    base64QR = await getQRPayment(accessToken, amount, refs, orderID);
     const imagePath = createTempQR(base64QR.qrImage, orderID);
 
     // send file back as a response
     return res.sendFile(imagePath);
   } catch (err) {
+    // Try to send base64 text image instead
+    try {
+      if (base64QR === undefined) throw err;
+      return res.json(base64QR);
+    } catch (err) {
+      console.log(err);
+    }
     // Delete order from DB if has any error
     if (newOrder !== null) Order.findOneAndDelete({ _id: newOrder._id });
 
@@ -139,9 +147,12 @@ router.post("/qr", async (req, res) => {
 
 const checkOrder = (potentialOrder, amount) => {
   if (potentialOrder) {
-    if (potentialOrder.amount !== amount) throw new Error("Amount mismatched");
+    if (potentialOrder.amount != amount)
+      throw new Error(
+        `Amount mismatched: detected ${amount}, needs ${potentialOrder.amount}`
+      );
     if (potentialOrder.status !== "ACTIVE")
-      throw new Error("Order is not fulfilled");
+      throw new Error("Order is not fulfilled: status is not active");
   } else throw new Error("Order not found");
 };
 
@@ -185,7 +196,8 @@ router.post("/confirm", async (req, res) => {
 
     // call mqtt
     // const topic = await topicPath(machineID);
-    // blink(topic, amount);
+    const topic = "@msg/TH-CC/PTT-TV/001/task";
+    blink(topic, amount);
 
     res.status(200).json({
       msg: "Transaction Complete",

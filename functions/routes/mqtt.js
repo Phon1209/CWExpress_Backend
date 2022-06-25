@@ -1,14 +1,9 @@
 const router = require("express").Router();
 const { check } = require("express-validator");
 const validate = require("../middleware/validate");
-const { reconnect, blink } = require("../utils/mqtt");
+const { blink } = require("../utils/mqtt");
 
 const testTopic = "@msg/TH-CC/PTT-TV/001/task";
-
-router.use((req, res, next) => {
-  reconnect();
-  next();
-});
 
 router.post(
   "/",

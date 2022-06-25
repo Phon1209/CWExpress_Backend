@@ -9,7 +9,7 @@ class MqttHandler {
     this.password = process.env.MQTT_SECRET;
   }
 
-  connect() {
+  connect(callback) {
     // Connect mqtt with credentials (in case of needed, otherwise we can omit 2nd param)
     console.info("Trying to connect to", process.env.MQTT_HOST);
 
@@ -17,6 +17,7 @@ class MqttHandler {
       clientId: this.clientId,
       username: this.username,
       password: this.password,
+      reconnectPeriod: 10000,
     });
 
     // Mqtt error calback
@@ -26,17 +27,7 @@ class MqttHandler {
     });
 
     // Connection callback
-    this.mqttClient.on("connect", () => {
-      console.info(`mqtt client connected`);
-    });
-
-    // mqtt subscriptions
-    // this.mqttClient.subscribe("mytopic", { qos: 0 });
-
-    // When a message arrives, console.log it
-    this.mqttClient.on("message", function (topic, message) {
-      console.info(`[${topic}]: `, message.toString());
-    });
+    this.mqttClient.on("connect", callback);
 
     this.mqttClient.on("close", () => {
       console.error(`mqtt client disconnected`);
