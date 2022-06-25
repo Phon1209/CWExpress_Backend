@@ -11,7 +11,7 @@ class MqttHandler {
 
   connect() {
     // Connect mqtt with credentials (in case of needed, otherwise we can omit 2nd param)
-    console.log("Trying to connect to", process.env.MQTT_HOST);
+    console.info("Trying to connect to", process.env.MQTT_HOST);
 
     this.mqttClient = mqtt.connect(this.host, {
       clientId: this.clientId,
@@ -21,13 +21,13 @@ class MqttHandler {
 
     // Mqtt error calback
     this.mqttClient.on("error", (err) => {
-      console.log(err);
+      console.error(err);
       this.mqttClient.end();
     });
 
     // Connection callback
     this.mqttClient.on("connect", () => {
-      console.log(`mqtt client connected`);
+      console.info(`mqtt client connected`);
     });
 
     // mqtt subscriptions
@@ -35,17 +35,17 @@ class MqttHandler {
 
     // When a message arrives, console.log it
     this.mqttClient.on("message", function (topic, message) {
-      console.log(`[${topic}]: `, message.toString());
+      console.info(`[${topic}]: `, message.toString());
     });
 
     this.mqttClient.on("close", () => {
-      console.log(`mqtt client disconnected`);
+      console.error(`mqtt client disconnected`);
     });
   }
 
   // Sends a mqtt message to topic: mytopic
   sendMessage(topic, message) {
-    console.log(`[${topic}]: send ${message}`);
+    console.info(`[${topic}]: send ${message}`);
     this.mqttClient.publish(topic, message);
   }
 }

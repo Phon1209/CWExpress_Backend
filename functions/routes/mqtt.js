@@ -1,16 +1,12 @@
 const router = require("express").Router();
-const MqttHandler = require("../MQTT/connect");
 const { check } = require("express-validator");
 const validate = require("../middleware/validate");
-
-const mqttClient = new MqttHandler();
-mqttClient.connect();
+const { reconnect, blink } = require("../utils/mqtt");
 
 const testTopic = "@msg/TH-CC/PTT-TV/001/task";
 
 router.use((req, res, next) => {
-  if (!mqttClient.mqttClient || !mqttClient.mqttClient.connected)
-    mqttClient.connect();
+  reconnect();
   next();
 });
 
@@ -29,8 +25,7 @@ router.post(
     const amount = req.body.amount;
 
     try {
-      mqttClient.sendMessage(testTopic, `on ${amount}`);
-      console.log("message sent");
+      blink(testTopic, amount);
       res.json("Request sent");
     } catch (err) {
       console.error(err);
