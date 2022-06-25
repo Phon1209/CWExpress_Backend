@@ -94,7 +94,7 @@ const createOrder = async (refs, amount, machineID) => {
       machineID,
     });
 
-    await newOrder.save();
+    return await newOrder.save();
   } catch (err) {
     throw err;
   }
@@ -105,26 +105,32 @@ const createOrder = async (refs, amount, machineID) => {
 // @access  Public
 router.post("/qr", async (req, res) => {
   const { amount, machineID } = req.body;
-  const orderID = uuid();
   const refs = {
     ref1: refIDGenerator(20),
     ref2: refIDGenerator(20),
   };
 
   console.log(refs);
+  let newOrder;
 
   try {
-    const accessToken = await getBankAccessToken();
-    const base64QR = await getQRPayment(accessToken, amount, refs, orderID);
-
-    const imagePath = createTempQR(base64QR.qrImage, orderID);
-
     // populate order into database
-    await createOrder(refs, amount, machineID);
+    newOrder = await createOrder(refs, amount, machineID);
+    const orderID = newOrder.id;
+
+    // Request token from SCB
+    const accessToken = await getBankAccessToken();
+
+    // Request QR file from SCB
+    const base64QR = await getQRPayment(accessToken, amount, refs, orderID);
+    const imagePath = createTempQR(base64QR.qrImage, orderID);
 
     // send file back as a response
     return res.sendFile(imagePath);
   } catch (err) {
+    // Delete order from DB if has any error
+    if (newOrder !== null) Order.findOneAndDelete({ _id: newOrder._id });
+
     console.error(err);
     return res.status(500).json({ error: "Service not available" });
   }
