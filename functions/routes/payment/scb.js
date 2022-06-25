@@ -1,12 +1,12 @@
 const router = require("express").Router();
+const { check } = require("express-validator");
 const { v4: uuid } = require("uuid");
 const request = require("request");
 const fs = require("fs");
 const path = require("path");
 
-const { check } = require("express-validator");
-
 const validate = require("../../middleware/validate");
+const Order = require("../../database/schema/Order");
 
 const getBankAccessToken = () => {
   const uid = uuid();
@@ -85,14 +85,18 @@ const createTempQR = (base64QR, orderID) => {
     fs.unlink(imagePath + orderID + ".png", (err) => {
       if (err) throw err;
     });
-  }, 1000 * 30);
+
+    await newOrder.save();
+  } catch (err) {
+    throw err;
+  }
 };
 
 // @route   POST  /pay/scb/qr
 // @desc    request QR code for payment
 // @access  Public
 router.post("/qr", async (req, res) => {
-  const { amount } = req.body;
+  const { amount, machineID } = req.body;
   const orderID = uuid();
 
   try {
@@ -107,7 +111,8 @@ router.post("/qr", async (req, res) => {
 
     createTempQR(base64QR.qrImage, orderID);
 
-    return res.status(200).json(base64QR);
+    // send file back as a response
+    return res.sendFile(imagePath);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Service not available" });
