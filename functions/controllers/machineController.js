@@ -39,7 +39,7 @@ const addMachine = async (req, res) => {
       machineNumber,
     });
     if (oldMachine) {
-      res.status(409).json({
+      return res.status(409).json({
         error: `The machine with this information has already existed in the database. Please refer to ${oldMachine._id} `,
       });
     }
@@ -65,7 +65,6 @@ const addMachine = async (req, res) => {
 // @access  Public
 const getMachine = async (req, res) => {
   const _id = req.params.id;
-  console.log(_id);
   try {
     const data = await Machine.findOne({ _id });
     res.json(data);
@@ -85,7 +84,8 @@ const updateMachine = async (req, res) => {
     // Update data with req.body
     const updatedData = await Machine.findOneAndUpdate(
       { _id },
-      { $set: { ...req.body } }
+      { $set: { ...req.body } },
+      { returnDocument: "after" }
     );
 
     res.json(updatedData);
