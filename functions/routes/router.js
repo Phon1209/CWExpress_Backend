@@ -10,5 +10,6 @@ router.use("/user", require("./user"));
 router.use("/mqtt", require("./mqtt"));
 router.use("/machines", require("./machine"));
 router.use("/pay", require("./pay"));
+router.use("/order", require("./order"));
 
 module.exports = router;
