@@ -14,7 +14,7 @@ router
   .get(getMachines)
   .post(
     [
-      check("province")
+      check("location")
         .custom((value) => provinceJSON.hasOwnProperty(value))
         .withMessage("Unknown province"),
     ],
@@ -27,7 +27,7 @@ router
   .get(getMachine)
   .put(
     [
-      check("province")
+      check("location")
         .custom((value) => {
           if (value === undefined) return true;
           return provinceJSON.hasOwnProperty(value);
