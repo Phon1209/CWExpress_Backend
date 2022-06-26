@@ -22,8 +22,8 @@ const OrderSchema = mongoose.Schema({
     default: 1,
   },
   machineID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Machine",
+    type: Number,
+    required: true,
   },
   createdAt: {
     type: Date,
