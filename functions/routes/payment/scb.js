@@ -195,8 +195,9 @@ router.post("/confirm", async (req, res) => {
     // @TODO: Check with SCB api
 
     // call mqtt
-    // const topic = await topicPath(machineID);
-    const topic = "@msg/TH-CC/PTT-TV/001/task";
+    let topic;
+    if (machineID === null) topic = "@msg/TH-CC/PTT-TV/001/task";
+    else topic = await topicPath(machineID);
     blink(topic, amount);
 
     res.status(200).json({
