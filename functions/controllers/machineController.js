@@ -98,10 +98,22 @@ const updateMachine = async (req, res) => {
 // @route   DEL   /machines/:id
 // @desc    remove machine's data from the system
 // @access  Private
+const deleteMachine = async (req, res) => {
+  const _id = req.params.id;
+
+  try {
+    const deletedMachine = await Machine.findOneAndDelete({ _id });
+    res.json(deletedMachine);
+  } catch (err) {
+    console.error(err);
+    res.status(404).json({ error: err.message });
+  }
+};
 
 module.exports = {
   getMachines,
   addMachine,
   getMachine,
   updateMachine,
+  deleteMachine,
 };

@@ -5,6 +5,7 @@ const {
   addMachine,
   getMachine,
   updateMachine,
+  deleteMachine,
 } = require("../controllers/machineController");
 const validate = require("../middleware/validate");
 const provinceJSON = require("../database/province.json");
@@ -36,5 +37,6 @@ router
     ],
     validate,
     updateMachine
-  );
+  )
+  .delete(deleteMachine);
 module.exports = router;
