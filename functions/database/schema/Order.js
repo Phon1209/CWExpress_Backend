@@ -25,9 +25,13 @@ const OrderSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  transactionID: String,
   createdAt: {
     type: Date,
     default: Date.now(),
+  },
+  fulfilledAt: {
+    type: Date,
   },
 });
 
