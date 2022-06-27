@@ -81,6 +81,23 @@ const updateMachine = async (req, res) => {
   const _id = req.params.id;
 
   try {
+    // Check if the new data conflict with the old data or not
+    const toBeUpdatedData = await Machine.findOne({ _id }).select("-_id -__v");
+    const existingData = await Machine.findOne({
+      ...toBeUpdatedData,
+      ...req.body,
+    }).select("_id");
+
+    if (existingData) {
+      if (existingData._id == _id)
+        return res.status(400).json({
+          error: `Editing the machine with the same information (Machine: ${_id})`,
+        });
+      return res.status(409).json({
+        error: `The machine with this information has already existed in the database. Please refer to ${existingData._id} `,
+      });
+    }
+
     // Update data with req.body
     const updatedData = await Machine.findOneAndUpdate(
       { _id },
