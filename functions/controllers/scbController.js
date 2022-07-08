@@ -225,42 +225,52 @@ const paymentConfirm = async (req, res) => {
     billPaymentRef1,
     billPaymentRef2,
     billPaymentRef3,
+    bypass,
   } = req.body;
 
   try {
-    // check with the database for order
-    const order = await retrieveOrder(
-      { ref1: billPaymentRef1, ref2: billPaymentRef2 },
-      amount
-    );
-    if (billPaymentRef3 !== "CWEX")
-      return res.status(401).json({ error: "Invalid Reference(s)" });
+    if (bypass !== true) {
+      // check with the database for order
+      const order = await retrieveOrder(
+        { ref1: billPaymentRef1, ref2: billPaymentRef2 },
+        amount
+      );
+      if (billPaymentRef3 !== "CWEX")
+        return res.status(401).json({ error: "Invalid Reference(s)" });
 
-    // Check with SCB api
-    try {
-      const accessToken = await getBankAccessToken();
-      await verifyTransaction(accessToken, transactionId, payeeAccountNumber, {
-        ref1: billPaymentRef1,
-        ref2: billPaymentRef2,
-      });
-    } catch (err) {
-      throw err;
+      // Check with SCB api
+      try {
+        const accessToken = await getBankAccessToken();
+        await verifyTransaction(
+          accessToken,
+          transactionId,
+          payeeAccountNumber,
+          {
+            ref1: billPaymentRef1,
+            ref2: billPaymentRef2,
+          }
+        );
+      } catch (err) {
+        throw err;
+      }
+
+      // Change status of the order
+      order.status = "COMPLETED";
+      // add transactionID and transactionDateandTime to order for future reference
+      order.fulfilledAt = new Date(transactionDateandTime);
+      order.transactionID = transactionId;
+      await order.save();
+
+      // call mqtt
+      const machineID = parseInt(order.machineID);
+      let topic;
+      if (machineID == 0) topic = "@msg/TH-CC/PTT-TV/001/task";
+      else topic = await topicPath(machineID);
+      blink(topic, amount);
+    } else {
+      console.log("Bypassing...");
+      blink("@msg/TH-CC/PTT-TV/001/task", amount);
     }
-
-    // Change status of the order
-    order.status = "COMPLETED";
-    // add transactionID and transactionDateandTime to order for future reference
-    order.fulfilledAt = new Date(transactionDateandTime);
-    order.transactionID = transactionId;
-    await order.save();
-
-    // call mqtt
-    const machineID = parseInt(order.machineID);
-    let topic;
-    if (machineID == 0) topic = "@msg/TH-CC/PTT-TV/001/task";
-    else topic = await topicPath(machineID);
-    blink(topic, amount);
-
     res.status(200).json({
       msg: "Transaction Complete",
       cmd: `Blinking on ${amount}`,

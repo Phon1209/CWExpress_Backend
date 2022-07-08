@@ -1,5 +1,6 @@
 const MqttHandler = require("../MQTT/connect");
 const Machine = require("../database/schema/Machine");
+const provinceJSON = require("../database/province.json");
 
 let mqttClient;
 
@@ -25,7 +26,7 @@ const topicPath = async (machineID) => {
   try {
     const machine = await Machine.findOne({ _id: machineID });
     const { location, branch, machineNumber } = machine;
-    return `@msg/${location}/${branch}/${machineNumber}/task`;
+    return `@msg/${provinceJSON[location]}/${branch}/${machineNumber}/task`;
   } catch (err) {
     throw err;
   }

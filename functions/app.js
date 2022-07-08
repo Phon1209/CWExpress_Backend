@@ -3,8 +3,11 @@ const morgan = require("morgan");
 const router = require("./routes/router");
 const connectDatabase = require("./database/connect");
 const { initializeClient } = require("./utils/mqtt");
+const cors = require("cors");
 
 const app = express();
+
+app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
