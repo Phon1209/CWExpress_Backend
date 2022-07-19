@@ -6,7 +6,7 @@ const Order = require("../database/schema/Order");
 const { refIDGenerator } = require("../utils/banking");
 const { createTempfile } = require("../utils/file");
 const { topicPath, blink } = require("../utils/mqtt");
-const { resolve } = require("path");
+const sse = require("../sse/sse");
 
 //---------------------------------------------
 
@@ -173,10 +173,10 @@ const verifyTransaction = async (
 const requestQR = async (req, res) => {
   const { amount } = req.body;
   let { machineID } = req.body;
-  if (machineID === undefined) machineID = 0;
-  const refs = {
-    ref1: refIDGenerator(20),
-    ref2: refIDGenerator(20),
+  if (machineID == undefined) machineID = 0;
+  let refs = {
+    ref1: refIDGenerator(10),
+    ref2: refIDGenerator(10),
   };
 
   console.log(refs);
@@ -184,29 +184,33 @@ const requestQR = async (req, res) => {
   let base64QR;
 
   try {
-    // populate order into database
-    newOrder = await createOrder(refs, amount, machineID);
-    const orderID = newOrder.id;
+    // Check if there's ACTIVE order currently match the requested one
+    const oldOrder = await Order.findOne({
+      status: "ACTIVE",
+      amount,
+      machineID,
+    });
+    console.log(oldOrder);
+    if (oldOrder !== null) {
+      // Use old order instead
+      newOrder = oldOrder;
+      refs = { ref1: oldOrder.ref1, ref2: oldOrder.ref2 };
+    } else {
+      // populate order into database
+      newOrder = await createOrder(refs, amount, machineID);
+    }
 
+    const orderID = newOrder.id;
     // Request token from SCB
     const accessToken = await getBankAccessToken();
 
     // Request QR file from SCB
     base64QR = await getQRPayment(accessToken, amount, refs, orderID);
-    const imagePath = createTempQR(base64QR.qrImage, orderID);
 
-    // send file back as a response
-    return res.sendFile(imagePath);
+    return res.json({ base64QR, refs, amount });
   } catch (err) {
-    // Try to send base64 text image instead
-    try {
-      if (base64QR === undefined) throw err;
-      return res.json(base64QR);
-    } catch (err) {
-      console.log(err);
-    }
     // Delete order from DB if has any error
-    if (newOrder !== null) Order.findOneAndDelete({ _id: newOrder._id });
+    if (newOrder !== undefined) Order.findOneAndDelete({ _id: newOrder._id });
 
     console.error(err);
     return res.status(500).json({ error: "Service not available" });
@@ -271,6 +275,23 @@ const paymentConfirm = async (req, res) => {
       console.log("Bypassing...");
       blink("@msg/TH-CC/PTT-TV/001/task", amount);
     }
+
+    // send event back to client
+    sse.send({
+      ref1: billPaymentRef1,
+      ref2: billPaymentRef2,
+      ref3: billPaymentRef3,
+      amount,
+      machineID: 2,
+    });
+    console.log(`Sent to transaction-${billPaymentRef2}`, {
+      ref1: billPaymentRef1,
+      ref2: billPaymentRef2,
+      ref3: billPaymentRef3,
+      amount,
+      machineID: 2,
+    });
+
     res.status(200).json({
       msg: "Transaction Complete",
       cmd: `Blinking on ${amount}`,
