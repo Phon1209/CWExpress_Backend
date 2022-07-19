@@ -284,13 +284,6 @@ const paymentConfirm = async (req, res) => {
       amount,
       machineID: 2,
     });
-    console.log(`Sent to transaction-${billPaymentRef2}`, {
-      ref1: billPaymentRef1,
-      ref2: billPaymentRef2,
-      ref3: billPaymentRef3,
-      amount,
-      machineID: 2,
-    });
 
     res.status(200).json({
       msg: "Transaction Complete",
