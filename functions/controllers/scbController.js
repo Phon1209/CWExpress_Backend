@@ -277,6 +277,7 @@ const paymentConfirm = async (req, res) => {
     }
 
     // send event back to client
+    // @TODO: need to change machineID
     sse.send({
       ref1: billPaymentRef1,
       ref2: billPaymentRef2,
