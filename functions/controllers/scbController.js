@@ -6,7 +6,6 @@ const Order = require("../database/schema/Order");
 const { refIDGenerator } = require("../utils/banking");
 const { createTempfile } = require("../utils/file");
 const { topicPath, blink } = require("../utils/mqtt");
-const sse = require("../sse/sse");
 
 //---------------------------------------------
 
@@ -275,16 +274,6 @@ const paymentConfirm = async (req, res) => {
       console.log("Bypassing...");
       blink("@msg/TH-CC/PTT-TV/001/task", amount);
     }
-
-    // send event back to client
-    // @TODO: need to change machineID
-    sse.send({
-      ref1: billPaymentRef1,
-      ref2: billPaymentRef2,
-      ref3: billPaymentRef3,
-      amount,
-      machineID: 2,
-    });
 
     res.status(200).json({
       msg: "Transaction Complete",
