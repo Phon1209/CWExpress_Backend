@@ -24,10 +24,9 @@ const blink = (topic, amount) => sendMessage(topic, `on ${amount}`);
 
 const topicPath = async (machineID) => {
   try {
-    if (machineID == 2) return "@msg/TH-CC/PTT-TV/001/task";
     const machine = await Machine.findOne({ _id: machineID });
-    const { location, branch, machineNumber } = machine;
-    return `@msg/${provinceJSON[location]}/${branch}/${machineNumber}/task`;
+    const { location } = machine;
+    return `@msg/${provinceJSON[location]}/${machineID}/task`;
   } catch (err) {
     throw err;
   }

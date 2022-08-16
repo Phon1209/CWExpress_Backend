@@ -266,11 +266,10 @@ const paymentConfirm = async (req, res) => {
 
       // call mqtt
       const machineID = parseInt(order.machineID);
-      let topic;
-      if (machineID == 0) topic = "@msg/TH-CC/PTT-TV/001/task";
-      else topic = await topicPath(machineID);
+      const topic = await topicPath(machineID);
       blink(topic, amount);
     } else {
+      // Dummy Device
       console.log("Bypassing...");
       blink("@msg/TH-CC/PTT-TV/001/task", amount);
     }
