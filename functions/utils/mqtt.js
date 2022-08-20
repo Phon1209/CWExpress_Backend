@@ -22,6 +22,8 @@ const sendMessage = (topic, message) => {
 
 const blink = (topic, amount) => sendMessage(topic, `on ${amount}`);
 
+const sendQR = (topic, qrRaw) => sendMessage(topic, `qr ${qrRaw}`);
+
 const topicPath = async (machineID) => {
   try {
     const machine = await Machine.findOne({ _id: machineID });
@@ -35,5 +37,6 @@ module.exports = {
   initializeClient,
   sendMessage,
   blink,
+  sendQR,
   topicPath,
 };

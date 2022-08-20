@@ -5,7 +5,7 @@ const path = require("path");
 const Order = require("../database/schema/Order");
 const { refIDGenerator } = require("../utils/banking");
 const { createTempfile } = require("../utils/file");
-const { topicPath, blink } = require("../utils/mqtt");
+const { topicPath, blink, sendQR } = require("../utils/mqtt");
 
 //---------------------------------------------
 
@@ -172,6 +172,7 @@ const verifyTransaction = async (
 const requestQR = async (req, res) => {
   const { amount } = req.body;
   let { machineID } = req.body;
+
   if (machineID == undefined) machineID = 0;
   let refs = {
     ref1: refIDGenerator(10),
@@ -205,6 +206,10 @@ const requestQR = async (req, res) => {
 
     // Request QR file from SCB
     base64QR = await getQRPayment(accessToken, amount, refs, orderID);
+
+    // Send QR to embedded through mqtt
+    const topic = await topicPath(machineID);
+    sendQR(topic, base64QR.qrRawData);
 
     return res.json({ base64QR, refs, amount });
   } catch (err) {
